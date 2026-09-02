@@ -45,7 +45,7 @@ public:
     }
 
     static int get_theoretical_mk_alignment_for_contiguous_layout(const std::optional<int>& expected_m) {
-        if (device_runtime->get_arch_major() != 10)
+        if (device_runtime->get_arch_major() != 10 and device_runtime->get_arch_major() != 12)
             return kLegacyMKAlignmentForContiguousLayout;
 
         int block_m = 224, mma_step = 32;

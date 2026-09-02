@@ -51,7 +51,7 @@ static void bmk_bnk_mn(const torch::Tensor& a, const torch::Tensor& b, const tor
     const auto arch_major = device_runtime->get_arch_major();
     if (arch_major == 9) {
         sm90_bmn_bnk_mn_gemm(a, b, d, s, m, n, k);
-    } else if (arch_major == 10) {
+    } else if (arch_major == 10 or arch_major == 12) {
         sm100_bmn_bnk_mn_gemm(a, b, d, s, m, n, k);
     } else {
         DG_HOST_UNREACHABLE("Unsupported architecture");
@@ -74,7 +74,7 @@ static void bhr_hdr_bhd(const torch::Tensor& A, const torch::Tensor& B, const to
         cublaslt_bhr_hdr_bhd(A, B, D, b, h, r, d);
     } else if (arch_major == 9) {
         sm90_bf16_bhr_hdr_bhd(A, B, D, b, h, r, d);
-    } else if (arch_major == 10) {
+    } else if (arch_major == 10 or arch_major == 12) {
         sm100_bf16_bhr_hdr_bhd(A, B, D, b, h, r, d);
     } else {
         DG_HOST_UNREACHABLE("Unsupported architecture");
@@ -97,7 +97,7 @@ static void bhd_hdr_bhr(const torch::Tensor& A, const torch::Tensor& B, const to
         cublaslt_bhd_hdr_bhr(A, B, D, b, h, r, d);
     } else if (arch_major == 9) {
         sm90_bf16_bhd_hdr_bhr(A, B, D, b, h, r, d);
-    } else if (arch_major == 10) {
+    } else if (arch_major == 10 or arch_major == 12) {
         sm100_bf16_bhd_hdr_bhr(A, B, D, b, h, r, d);
     } else {
         DG_HOST_UNREACHABLE("Unsupported architecture");
@@ -167,7 +167,7 @@ static void fp8_bmm(const torch::Tensor& a, const torch::Tensor& sfa,
 
     // Dispatch implementation
     const auto arch_major = device_runtime->get_arch_major();
-    if (arch_major == 10) {
+    if (arch_major == 10 or arch_major == 12) {
         sm100_fp8_bmm(a, transformed_sfa, b, transformed_sfb, c, d, batch_size, m, n, k, gran_k_a, gran_k_b, major_a, major_b, compiled_dims);
     } else {
         const auto major_sfb = get_major_type_ab(sfb);
@@ -192,7 +192,7 @@ static void fp8_einsum(const std::string& expr,
         const auto perm_d = d.permute({1, 0, 2});
         const auto perm_c = c.has_value() ? std::make_optional(c.value().permute({1, 0, 2})) : std::nullopt;
         fp8_bmm(perm_a, perm_sfa, b.first, b.second, perm_d, perm_c, recipe, "nk");
-    } else if (expr == "bhd,hdr->bhr" and arch_major == 10) {
+    } else if (expr == "bhd,hdr->bhr" and (arch_major == 10 or arch_major == 12)) {
         // (batch_size, m, n, k): (h, b, r, d)
         const auto perm_a = a.first.permute({1, 0, 2});
         const auto perm_sfa = a.second.permute({1, 0, 2});
@@ -201,7 +201,7 @@ static void fp8_einsum(const std::string& expr,
         const auto perm_d = d.permute({1, 0, 2});
         const auto perm_c = c.has_value() ? std::make_optional(c.value().permute({1, 0, 2})) : std::nullopt;
         fp8_bmm(perm_a, perm_sfa, perm_b, perm_sfb, perm_d, perm_c, recipe, "nk");
-    } else if (expr == "bhd,bhr->hdr" and arch_major == 10) {
+    } else if (expr == "bhd,bhr->hdr" and (arch_major == 10 or arch_major == 12)) {
         // (batch_size, m, n, k): (h, d, r, b)
         const auto perm_a = a.first.permute({1, 2, 0});
         const auto perm_sfa = a.second.permute({1, 2, 0});
