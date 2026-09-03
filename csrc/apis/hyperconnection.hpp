@@ -50,7 +50,7 @@ static void tf32_hc_prenorm_gemm(const torch::Tensor& a,
     const auto arch_major = device_runtime->get_arch_major();
     if (arch_major == 9) {
         sm90_tf32_hc_prenorm_gemm(a, b, d, sqr_sum, m, n, k, num_splits.has_value() ? num_splits.value() : 1);
-    } else if (arch_major == 10 or arch_major == 12) {
+    } else if (arch_major == 10) {
         sm100_tf32_hc_prenorm_gemm(a, b, d, sqr_sum, m, n, k, num_splits.has_value() ? num_splits.value() : 1);
     } else {
         DG_HOST_UNREACHABLE("Unsupported architecture");
