@@ -97,7 +97,10 @@ static void sm90_fp8_mqa_logits(const torch::Tensor& q,
 
     const bool is_compressed_logits = (max_seqlen_k > 0);
 
-    DG_HOST_ASSERT(device_runtime->get_arch_major() == 9);
+    // SM121 (GB10) is routed here by the API dispatch: its wgmma path is
+    // SM90-compatible (see attention.hpp's arch_major==12 comment).
+    DG_HOST_ASSERT(device_runtime->get_arch_major() == 9 or
+                   device_runtime->get_arch_major() == 12);
     DG_HOST_ASSERT(head_dim == 32 or head_dim == 64 or head_dim == 128);
     const auto tensor_map_q = make_tma_2d_desc(q, head_dim, seq_len * num_heads,
                                                head_dim, block_q * num_heads, head_dim, head_dim);
@@ -329,7 +332,10 @@ static void sm90_fp8_paged_mqa_logits(const torch::Tensor& q,
     const int num_math_warp_groups = split_kv / mma_m;
     const int num_math_threads = num_math_warp_groups * 128;
     constexpr int num_q_stages = 3, num_kv_stages = 3;
-    DG_HOST_ASSERT(device_runtime->get_arch_major() == 9);
+    // SM121 (GB10) is routed here by the API dispatch: its wgmma path is
+    // SM90-compatible (see attention.hpp's arch_major==12 comment).
+    DG_HOST_ASSERT(device_runtime->get_arch_major() == 9 or
+                   device_runtime->get_arch_major() == 12);
     DG_HOST_ASSERT(split_kv % mma_m == 0 and logits_stride % split_kv == 0);
 
     const int next_n_atom = (is_varlen or next_n >= 2) ? 2 : 1;
