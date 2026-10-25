@@ -1,0 +1,11 @@
+[[refs]]
+type = "self"
+repo = "DeepGEMM"
+ref = "main"
+description = "This project's own codekeeper index."
+
+[[refs]]
+type = "upstream"
+repo = "DeepGEMM-upstream"
+ref = "dev"
+description = "Upstream DeepGEMM; forked into the FES DeepGEMM-deepseek variant."
